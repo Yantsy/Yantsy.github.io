@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        #page1 {
+            
+            background-image: url("img/b1d4c6690e3a903f7d748bba0e1a30c0e2a57de098dfeb-Cw91BO.png");
+            background-size: cover;
+            background-attachment: fixed;
+           margin: 0;
+            width: 100vw;
+            height: 100vh;
+        }
+        #pp{
+            position: absolute;
+            z-index: 1;
+        }
+        
+        h1{
+            color: #AF2C4C;
+            font-family: "华文新魏";
+            font-size: 128px;
+            margin-top: 300px;
+            padding-left: 30px;
+            position: relative;
+            writing-mode: vertical-lr;
+            text-decoration: underline;
+            
+            
+        }
+        
+        
+        .rectangle {
+            
+            position: fixed;
+            bottom: 5px;
+            right: 5px;
+            transform: translate(-50%,-50%);
+            width: 123.6px;
+            height: 76.4px;
+            background-color:rgb(107, 47, 73);
+            border-radius: 20px;
+            z-index: 999;
+            background-image: url("img/thunder.png");
+            background-position: center;
+            transition: background-image 0.3s ease;
+            background-blend-mode: normal;
+            
+
+
+            
+        }
+        .rectangle:hover{
+            filter: brightness(166%);
+            background-blend-mode: lighten;
+        }
+        
+        
+        .list{
+            margin-top: 15px;
+            padding-left: 15px;
+            position: relative;
+           
+        }
+        #li{
+            position: absolute;
+            right: 20px;
+            top: 10%;
+            padding-left: 1100px;
+            writing-mode: vertical-rl;
+            font-family: "华文新魏";
+            font-size:  24px;
+            color: #AF2C4C;
+            font-weight: 100;
+            text-decoration: underline;
+            cursor: pointer;
+            
+            
+        }
+        #li span {
+            background-color: rgba(94, 78, 68,0.8);
+            padding: 3px 5px;
+            border-radius: 3px;
+        }
+        .list{
+            color: #AF2C4C;
+            font-family: "华文新魏";
+            font-size: 32px;
+        }    
+        #page2 {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-direction: row;
+            
+        }
+        
+        #a1{
+           
+            transition: filter 0.3s ease;
+        }
+        #a1:hover{
+            filter: brightness(166%);
+        }
+        #a2{
+           
+           transition: filter 0.3s ease;
+       }
+       #a2:hover{
+           filter: brightness(166%);
+       }
+       #a3{
+           
+           transition: filter 0.3s ease;
+       }
+       #a3:hover{
+           filter: brightness(166%);
+       }
+       .po{
+        font-family: "宋体";
+        transition: color 0.3s ease;
+       }
+       .po:hover{
+        color: #AF2C4C;
+       }
+       .po a{
+        color: inherit;
+        text-decoration: none;
+       }
+        
+            
+       
+       
+
+        
+        
+    </style>
+    <title>玉衡</title>
+</head>
+<body>
+    <!-- page1 -->
+    <div id="page1">
+        <div id="pp">
+            <h1>刻晴</h1>
+    
+        <div class="list">
+        <ul>
+            
+            <li >国家：璃月</li>
+            <li >职业：玉衡星</li>
+            
+            
+        </ul>
+        </div>
+        
+        </div>
+        <p id="li" ><span onclick="scrollToNextPage()"><strong>···心之所向，日复一日，必有精进···</strong></span></p>
+        <div class="rectangle" onclick="audioplayer()">
+        <audio src="music\Myriad of Lights.mp3" id="audio" ></audio>
+        </div>
+
+    </div>
+    
+    
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<!-- page2 -->
+    <div id="page2">
+        <div class="a1">
+            <img class="img" id="a1" src="img/liyuedark.jpg" alt="璃云月海" style="width: 400px ;height: 640px;">
+            <p class="po"><a href="liyue.html" target="_blank">璃云月海</a></p>
+        </div>
+        <div class="a2">
+            <img class="img" id="a2" src="img\thunderstormdark.jpg" alt="霆霓快雨" style="width: 400px ;height: 640px;" >
+            <p class="po"><a href="thunderstorm.html" target="_blank">霆霓快雨</a></p>
+        </div>
+        <div class="a3">
+            <img class="img" id="a3" src="img\fleetingyears.jpg" alt="霓裾翩跹" style="width: 400px ;height: 640px;">
+            <p class="po"><a href="fleetingyears.html" target="_blank">霓裾翩跹</a></p>
+        </div>
+
+
+    </div>
+    <script>
+        function scrollToNextPage(){
+            let page2=document.getElementById("page2");
+            page2.style.display="flex";
+            page2.scrollIntoView({behavior:"smooth"});
+            
+        }
+        function audioplayer(){
+         let audio=document.getElementById("audio")   
+         if(audio.paused){
+            audio.play()
+         }else{
+            audio.pause()
+         }
+        }
+        
+    </script>
+    
+    
+</body>
+</html>
