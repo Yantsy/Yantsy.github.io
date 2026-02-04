@@ -13,16 +13,16 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&family=Noto+Sans+SC:wght@300;500;700&display=swap');
         body {
-            background: #0a0a0f;
-            color: #e2e8f0;
+            background: #f8fafc;
+            color: #1e293b;
             font-family: 'Noto Sans SC', sans-serif;
-            background-image: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #0a0a0f 100%);
+            background-image: radial-gradient(circle at 50% 50%, #e0e7ff 0%, #f8fafc 100%);
             min-height: 100vh;
         }
-        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
-        .neon-pink { color: #ff007f; text-shadow: 0 0 10px rgba(255, 0, 127, 0.5); }
-        .neon-border { border: 1px solid rgba(0, 212, 255, 0.3); box-shadow: 0 0 15px rgba(0, 212, 255, 0.1); }
-        .markdown-body h1 { font-size: 2rem; font-weight: bold; margin-bottom: 1rem; color: #00d4ff; }
+        .glass { background: rgba(241, 245, 249, 0.9) (slate-100); backdrop-filter: blur(12px); border: 1px solid rgba(59, 130, 246, 0.2); box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .neon-pink { color: #3b82f6; text-shadow: 0 0 10px rgba(59, 130, 246, 0.4); }
+        .neon-border { border: 1px solid rgba(59, 130, 246, 0.4); box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }
+        .markdown-body h1 { font-size: 2rem; font-weight: bold; margin-bottom: 1rem; color: #3b82f6; }
         .markdown-body p { margin-bottom: 1rem; line-height: 1.8; opacity: 0.9; }
         pre { background: rgba(0,0,0,0.3) !important; padding: 1rem; border-radius: 8px; font-family: 'JetBrains Mono'; }
     </style>
@@ -108,26 +108,26 @@
             return (
                 <div className="flex flex-col min-h-screen">
                     {/* 导航栏 */}
-                    <nav className="glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-white/80">
+                    <nav className="glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-blue/80">
                         <div className="flex items-center gap-6">
                             <h1 className="text-xl font-black tracking-tighter neon-pink cursor-pointer" onClick={() => setView('home')}>YANTSY.SYS</h1>
-                            {view !== 'home' && <button onClick={() => setView('home')} className="text-xs opacity-50 hover:opacity-100">/ BACK_TO_INDEX</button>}
+                            {view !== 'home' && <button onClick={() => setView('home')} className="text-xs opacity-60 hover:opacity-100">/ BACK_TO_INDEX</button>}
                         </div>
 
                         <div className="flex items-center gap-4">
                             {isLoggedIn ? (
                                 <div className="flex items-center gap-4">
-                                    <button onClick={() => { setView('editor'); setEditPath(`post-${Date.now()}.md`); }} className="bg-cyan-500 text-black px-4 py-1.5 rounded-full text-xs font-bold shadow-x1 shadow-blue-100/50">NEW_POST</button>
+                                    <button onClick={() => { setView('editor'); setEditPath(`post-${Date.now()}.md`); }} className="bg-cyan-500 text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-x1 shadow-blue-300/50">NEW_POST</button>
                                     <div className="flex items-center gap-3 border-l border-white/10 pl-4">
                                         <div className="text-right hidden sm:block">
                                             <div className="text-xs font-bold text-pink-500 uppercase">yantsy</div>
-                                            <div className="text-[9px] opacity-40">{CONFIG.signature}</div>
+                                            <div className="text-[9px] opacity-60">{CONFIG.signature}</div>
                                         </div>
                                         <img src={CONFIG.avatar} className="w-9 h-9 rounded-full border border-pink-500/50" />
                                     </div>
                                 </div>
                             ) : (
-                                <button onClick={() => setShowLogin(true)} className="text-[10px] tracking-widest opacity-40 hover:opacity-100 hover:text-cyan-400">ADMIN_LOGIN</button>
+                                <button onClick={() => setShowLogin(true)} className="text-[10px] tracking-widest opacity-60 hover:opacity-100 hover:text-blue-500">ADMIN_LOGIN</button>
                             )}
                         </div>
                     </nav>
@@ -139,14 +139,14 @@
                         {view === 'home' && (
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                                 <div className="md:col-span-2 space-y-6">
-                                    <h2 className="text-xs font-mono text-cyan-400 mb-8 tracking-[0.3em] uppercase opacity-50">// Directory: {CONFIG.folder}</h2>
+                                    <h2 className="text-xs font-mono text-blue-500 mb-8 tracking-[0.3em] uppercase opacity-60">// Directory: {CONFIG.folder}</h2>
                                     {articles.map(article => (
                                         <div key={article.sha} onClick={() => readPost(article)} className="glass p-6 rounded-2xl hover:neon-border transition-all cursor-pointer group">
                                             <div className="flex justify-between items-start">
-                                                <h3 className="text-xl font-bold group-hover:text-cyan-400 transition">{article.name.replace('.md', '')}</h3>
+                                                <h3 className="text-xl font-bold group-hover:text-blue-400 transition">{article.name.replace('.md', '')}</h3>
                                                 <i className="fas fa-chevron-right text-[10px] opacity-20 group-hover:opacity-100 group-hover:translate-x-2 transition-all"></i>
                                             </div>
-                                            <div className="mt-4 flex gap-3 opacity-40 text-[10px]">
+                                            <div className="mt-4 flex gap-3 opacity-60 text-[10px]">
                                                 <span><i className="far fa-file-alt mr-1"></i> MARKDOWN</span>
                                                 <span><i className="far fa-clock mr-1"></i> SYNCED</span>
                                             </div>
@@ -160,9 +160,9 @@
                                         <p className="text-sm opacity-60 italic leading-relaxed">“程序是不灭的灵魂，而代码是通往幻想的阶梯。”</p>
                                     </div>
                                     <div className="relative rounded-3xl overflow-hidden h-64 glass">
-                                        <img src="https://images.unsplash.com/photo-1614728263952-84ea256f9679?auto=format&fit=crop&q=80&w=500" className="w-full h-full object-cover opacity-50" />
+                                        <img src="https://images.unsplash.com/photo-1614728263952-84ea256f9679?auto=format&fit=crop&q=80&w=500" className="w-full h-full object-cover opacity-60" />
                                         <div className="absolute inset-0 flex items-center justify-center">
-                                            <span className="text-[10px] font-mono bg-black/50 px-3 py-1">SIGNAL_STRENGTH: 99%</span>
+                                            <span className="text-[10px] font-mono bg-white/80 text-blue-600 px-3 py-1">SIGNAL_STRENGTH: 99%</span>
                                         </div>
                                     </div>
                                 </aside>
@@ -181,8 +181,8 @@
                                 </div>
                                 {/* 评论区占位 */}
                                 <section className="mt-12 glass p-8 rounded-[2rem]">
-                                    <h4 className="text-sm font-bold text-cyan-400 mb-6 uppercase tracking-widest">Incoming Comments // 留言板块</h4>
-                                    <textarea placeholder="输入你的留言..." className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm outline-none mb-4 h-24 focus:border-pink-500 transition"></textarea>
+                                    <h4 className="text-sm font-bold text-blue-500 mb-6 uppercase tracking-widest">Incoming Comments // 留言板块</h4>
+                                    <textarea placeholder="输入你的留言..." className="w-full bg-white border-blue-100 rounded-xl p-4 text-sm outline-none mb-4 h-24 focus:border-blue-400 transition"></textarea>
                                     <button className="bg-white/5 hover:bg-white/10 px-6 py-2 rounded-lg text-xs transition">发送数据</button>
                                 </section>
                             </div>
@@ -195,19 +195,19 @@
                                     <div className="flex-1">
                                         <label className="text-[9px] text-pink-500 uppercase block ml-1">Access Token</label>
                                         <input type="password" value={ghToken} onChange={(e) => { setGhToken(e.target.value); localStorage.setItem('gh_token', e.target.value); }} 
-                                               placeholder="GitHub Personal Token" className="w-full bg-black/40 p-2 rounded-lg text-xs outline-none border border-white/10" />
+                                               placeholder="GitHub Personal Token" className="w-full bg-white border border-blue-100 p-2 rounded-lg text-xs outline-none border border-blue-200" />
                                     </div>
                                     <div className="flex-1">
-                                        <label className="text-[9px] text-cyan-400 uppercase block ml-1">Post Filename</label>
+                                        <label className="text-[9px] text-blue-500 uppercase block ml-1">Post Filename</label>
                                         <input type="text" value={editPath} onChange={(e) => setEditPath(e.target.value)} 
-                                               placeholder="example.md" className="w-full bg-black/40 p-2 rounded-lg text-xs outline-none border border-white/10 font-mono" />
+                                               placeholder="example.md" className="w-full bg-white border border-blue-100 p-2 rounded-lg text-xs outline-none border border-blue-200 font-mono" />
                                     </div>
                                     <button onClick={pushToGithub} className="bg-white text-black px-8 py-2 rounded-lg font-black text-xs hover:bg-pink-500 hover:text-white transition">PUSH_REMOTE</button>
                                 </div>
                                 <div className="flex-1 grid grid-cols-1 lg:grid-cols-2">
-                                    <textarea className="bg-black/60 p-8 text-sm font-mono outline-none border-x border-white/5 resize-none leading-relaxed"
+                                    <textarea className="bg-white p-8 text-sm font-mono outline-none border-x border-blue-100 resize-none leading-relaxed"
                                               value={editContent} onChange={(e) => setEditContent(e.target.value)} />
-                                    <div className="bg-white/[0.02] p-8 overflow-auto markdown-body border-r border-white/5" 
+                                    <div className="bg-slate-50 p-8 overflow-auto markdown-body border-r border-blue-100" 
                                          dangerouslySetInnerHTML={{ __html: marked.parse(editContent) }}></div>
                                 </div>
                             </div>
@@ -216,15 +216,15 @@
 
                     {/* 登录弹窗 */}
                     {showLogin && (
-                        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[100] backdrop-blur-md">
-                            <form onSubmit={handleLogin} className="glass p-10 rounded-[2rem] w-80 border-t-2 border-pink-500">
+                        <div className="fixed inset-0 bg-slate-900/80 flex items-center justify-center z-[100] backdrop-blur-md">
+                            <form onSubmit={handleLogin} className="glass p-10 rounded-[2rem] w-80 border-t-2 border-blue-500">
                                 <div className="text-center mb-6">
-                                    <h2 className="font-black tracking-widest text-cyan-400">CORE_LOGIN</h2>
-                                    <p className="text-[9px] opacity-40 mt-1">USER AUTHENTICATION REQUIRED</p>
+                                    <h2 className="font-black tracking-widest text-blue-500">CORE_LOGIN</h2>
+                                    <p className="text-[9px] opacity-60 mt-1">USER AUTHENTICATION REQUIRED</p>
                                 </div>
                                 <input name="user" type="text" placeholder="ID" className="w-full bg-white/5 p-3 rounded-xl mb-4 text-sm outline-none border border-white/10" />
                                 <input name="pass" type="password" placeholder="PASS" className="w-full bg-white/5 p-3 rounded-xl mb-6 text-sm outline-none border border-white/10" />
-                                <button className="w-full bg-gradient-to-r from-pink-500 to-cyan-500 py-3 rounded-xl text-xs font-bold uppercase">Authorize</button>
+                                <button className="w-full bg-gradient-to-r from-blue-500 to-pink-500 py-3 rounded-xl text-xs font-bold uppercase">Authorize</button>
                                 <button type="button" onClick={() => setShowLogin(false)} className="w-full mt-4 text-[9px] opacity-20">CANCEL</button>
                             </form>
                         </div>
