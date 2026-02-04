@@ -3,25 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yantsy's Cyber Blog - Editor</title>
+    <title>Yantsy's Cyber Blog</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono&family=Noto+Sans+SC:wght@300;500;700&display=swap');
         body {
-            background: #0d0d15;
-            color: #e0e0e0;
-            font-family: 'JetBrains Mono', sans-serif;
-            background-image: linear-gradient(rgba(13, 13, 21, 0.9), rgba(13, 13, 21, 0.9)), url('https://api.dujin.org/bing/1920.php');
-            background-attachment: fixed; background-size: cover;
+            background: #0a0a0f;
+            color: #e2e8f0;
+            font-family: 'Noto Sans SC', sans-serif;
+            background-image: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #0a0a0f 100%);
+            min-height: 100vh;
         }
-        .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
-        .neon-text { text-shadow: 0 0 8px #ff007f; }
-        .editor-height { height: calc(100vh - 300px); }
-        input:focus, textarea:focus { border-color: #ff007f !important; box-shadow: 0 0 10px rgba(255, 0, 127, 0.2); }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .neon-pink { color: #ff007f; text-shadow: 0 0 10px rgba(255, 0, 127, 0.5); }
+        .neon-border { border: 1px solid rgba(0, 212, 255, 0.3); box-shadow: 0 0 15px rgba(0, 212, 255, 0.1); }
+        .markdown-body h1 { font-size: 2rem; font-weight: bold; margin-bottom: 1rem; color: #00d4ff; }
+        .markdown-body p { margin-bottom: 1rem; line-height: 1.8; opacity: 0.9; }
+        pre { background: rgba(0,0,0,0.3) !important; padding: 1rem; border-radius: 8px; font-family: 'JetBrains Mono'; }
     </style>
 </head>
 <body>
@@ -30,162 +33,182 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        const THEME_CONFIG = {
+        const CONFIG = {
+            owner: "Yantsy",
+            repo: "Yantsy.github.io",
+            folder: "yantsyblog-md",
             avatar: "https://pic.rmb.bdstatic.com/bjh/events/598a6669f4c399f92e591458e0a35c60.png",
-            logoName: "YANTSY.EXE",
-            repoOwner: "Yantsy",
-            repoName: "Yantsy.github.io",
             signature: "在 0 与 1 的海洋里寻找真实。"
         };
 
         const App = () => {
             const [isLoggedIn, setIsLoggedIn] = useState(false);
+            const [view, setView] = useState('home'); // home | read | editor
+            const [articles, setArticles] = useState([]);
+            const [currentArticle, setCurrentArticle] = useState(null);
             const [showLogin, setShowLogin] = useState(false);
-            const [view, setView] = useState('home');
-            const [postContent, setPostContent] = useState("# 标题\n\n正文内容...");
-            
-            // GitHub 相关状态
+            const [editContent, setEditContent] = useState("# 新文章标题\n\n正文从这里开始...");
+            const [editPath, setEditPath] = useState("");
             const [ghToken, setGhToken] = useState(localStorage.getItem('gh_token') || '');
-            const [filePath, setFilePath] = useState('posts/new-article.md');
-            const [isUploading, setIsUploading] = useState(false);
 
+            // 1. 获取文章列表 (游客&博主通用)
+            useEffect(() => {
+                fetch(`https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/contents/${CONFIG.folder}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if(Array.isArray(data)) {
+                            setArticles(data.filter(file => file.name.endsWith('.md')));
+                        }
+                    })
+                    .catch(err => console.error("获取文章失败:", err));
+            }, []);
+
+            // 2. 阅读文章逻辑
+            const readPost = async (file) => {
+                const res = await fetch(file.download_url);
+                const text = await res.text();
+                setCurrentArticle({ title: file.name, content: text });
+                setView('read');
+            };
+
+            // 3. 登录处理
             const handleLogin = (e) => {
                 e.preventDefault();
-                if(e.target.username.value === "yantsy" && e.target.password.value === "yantsy514") {
+                if(e.target.user.value === "yantsy" && e.target.pass.value === "yantsy514") {
                     setIsLoggedIn(true);
                     setShowLogin(false);
-                } else { alert("验证失败"); }
+                } else { alert("身份核验未通过。"); }
             };
 
-            // 保存 Token 到本地
-            const saveToken = (token) => {
-                setGhToken(token);
-                localStorage.setItem('gh_token', token);
-            };
-
-            // --- 核心：GitHub 上传逻辑 ---
-            const uploadToGithub = async () => {
-                if (!ghToken) return alert("请先配置 GitHub Access Token！");
-                if (!filePath) return alert("请输入文件保存路径！");
-
-                setIsUploading(true);
+            // 4. 上传逻辑
+            const pushToGithub = async () => {
+                if(!ghToken) return alert("请在编辑器上方配置 Token");
+                const path = `${CONFIG.folder}/${editPath || 'new-post.md'}`;
+                const url = `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/contents/${path}`;
+                
                 try {
-                    // 1. 尝试获取文件信息（如果文件已存在，需要获取其 sha 才能更新）
-                    let sha = null;
-                    const getUrl = `https://api.github.com/repos/${THEME_CONFIG.repoOwner}/${THEME_CONFIG.repoName}/contents/${filePath}`;
-                    
-                    const checkRes = await fetch(getUrl, {
-                        headers: { 'Authorization': `token ${ghToken}` }
-                    });
-                    
-                    if (checkRes.ok) {
-                        const fileData = await checkRes.json();
-                        sha = fileData.sha; // 获取旧文件的 SHA
-                    }
+                    // 获取 SHA (如果是更新)
+                    const check = await fetch(url, { headers: { 'Authorization': `token ${ghToken}` } });
+                    const oldFile = check.ok ? await check.json() : null;
 
-                    // 2. 将内容转换为满足 Unicode 的 Base64
-                    const contentBase64 = btoa(unescape(encodeURIComponent(postContent)));
-
-                    // 3. 提交 PUT 请求
-                    const putRes = await fetch(getUrl, {
+                    const res = await fetch(url, {
                         method: 'PUT',
-                        headers: {
-                            'Authorization': `token ${ghToken}`,
-                            'Content-Type': 'application/json',
-                        },
+                        headers: { 'Authorization': `token ${ghToken}`, 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            message: `Blog: update ${filePath} via Web Editor`,
-                            content: contentBase64,
-                            sha: sha // 如果 sha 为空则是新建，如果不为空则是更新
+                            message: `Update ${path}`,
+                            content: btoa(unescape(encodeURIComponent(editContent))),
+                            sha: oldFile?.sha
                         })
                     });
-
-                    if (putRes.ok) {
-                        alert("🎉 上传成功！Github Pages 稍后将自动部署。");
-                    } else {
-                        const err = await putRes.json();
-                        throw new Error(err.message);
-                    }
-                } catch (error) {
-                    console.error(error);
-                    alert("上传失败：" + error.message);
-                } finally {
-                    setIsUploading(false);
-                }
+                    if(res.ok) alert("同步成功！重启浏览器或等待几分钟即可看到更新。");
+                    else alert("同步失败，请检查 Token 权限。");
+                } catch (e) { alert("网络错误"); }
             };
 
             return (
-                <div className="min-h-screen flex flex-col">
+                <div className="flex flex-col min-h-screen">
                     {/* 导航栏 */}
-                    <nav className="px-8 py-4 flex justify-between items-center glass-card sticky top-0 z-50 border-b border-white/5">
-                        <h1 className="text-xl font-bold neon-text tracking-tighter cursor-pointer" onClick={() => setView('home')}>
-                            {THEME_CONFIG.logoName}
-                        </h1>
-
+                    <nav className="glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-white/5">
                         <div className="flex items-center gap-6">
+                            <h1 className="text-xl font-black tracking-tighter neon-pink cursor-pointer" onClick={() => setView('home')}>YANTSY.SYS</h1>
+                            {view !== 'home' && <button onClick={() => setView('home')} className="text-xs opacity-50 hover:opacity-100">/ BACK_TO_INDEX</button>}
+                        </div>
+
+                        <div className="flex items-center gap-4">
                             {isLoggedIn ? (
                                 <div className="flex items-center gap-4">
-                                    <button onClick={() => setView(view === 'editor' ? 'home' : 'editor')} 
-                                            className={`px-4 py-1.5 rounded-full text-xs font-bold transition ${view === 'editor' ? 'bg-pink-600' : 'bg-cyan-500 text-black'}`}>
-                                        <i className={`fas ${view === 'editor' ? 'fa-eye' : 'fa-pen'} mr-2`}></i>
-                                        {view === 'editor' ? '预览模式' : '写文章'}
-                                    </button>
-                                    <div className="flex items-center gap-3 pl-4 border-l border-white/10">
+                                    <button onClick={() => { setView('editor'); setEditPath(`post-${Date.now()}.md`); }} className="bg-cyan-500 text-black px-4 py-1.5 rounded-full text-xs font-bold shadow-lg shadow-cyan-500/20">NEW_POST</button>
+                                    <div className="flex items-center gap-3 border-l border-white/10 pl-4">
                                         <div className="text-right hidden sm:block">
-                                            <div className="text-sm font-bold text-pink-400">yantsy</div>
-                                            <div className="text-[10px] opacity-50">{THEME_CONFIG.signature}</div>
+                                            <div className="text-xs font-bold text-pink-500 uppercase">yantsy</div>
+                                            <div className="text-[9px] opacity-40">{CONFIG.signature}</div>
                                         </div>
-                                        <img src={THEME_CONFIG.avatar} className="w-10 h-10 rounded-full border border-pink-500/50" />
+                                        <img src={CONFIG.avatar} className="w-9 h-9 rounded-full border border-pink-500/50" />
                                     </div>
                                 </div>
                             ) : (
-                                <button onClick={() => setShowLogin(true)} className="text-sm opacity-50 hover:opacity-100 hover:text-cyan-400">LOGIN</button>
+                                <button onClick={() => setShowLogin(true)} className="text-[10px] tracking-widest opacity-40 hover:opacity-100 hover:text-cyan-400">ADMIN_LOGIN</button>
                             )}
                         </div>
                     </nav>
 
-                    {/* 主内容 */}
-                    <main className="container mx-auto mt-8 px-4 flex-1">
-                        {view === 'home' ? (
-                            <div className="max-w-4xl mx-auto space-y-6">
-                                <article className="glass-card p-10 rounded-3xl border-l-4 border-pink-500">
-                                    <h2 className="text-3xl font-bold mb-4">Hello World</h2>
-                                    <p className="opacity-70">点击右上角登录后即可开启云端编辑模式...</p>
-                                </article>
-                            </div>
-                        ) : (
-                            <div className="animate-fadeIn space-y-4 pb-10">
-                                {/* GitHub 配置栏 */}
-                                <div className="glass-card p-4 rounded-2xl flex flex-wrap gap-4 items-center">
-                                    <div className="flex-1 min-w-[200px]">
-                                        <label className="text-[10px] text-pink-500 block mb-1">GITHUB TOKEN (PAT)</label>
-                                        <input type="password" value={ghToken} onChange={(e) => saveToken(e.target.value)} 
-                                               placeholder="粘贴你的 Token" className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-xs outline-none" />
-                                    </div>
-                                    <div className="flex-1 min-w-[200px]">
-                                        <label className="text-[10px] text-cyan-400 block mb-1">FILE PATH (文件名/路径)</label>
-                                        <input type="text" value={filePath} onChange={(e) => setFilePath(e.target.value)} 
-                                               className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-xs outline-none font-mono" />
-                                    </div>
-                                    <button onClick={uploadToGithub} disabled={isUploading}
-                                            className="bg-white text-black px-6 py-4 rounded-xl font-bold hover:bg-pink-500 hover:text-white transition disabled:opacity-50 h-full">
-                                        {isUploading ? <i className="fas fa-spinner animate-spin"></i> : "PUSH TO GITHUB"}
-                                    </button>
+                    {/* 主视图 */}
+                    <main className={`flex-1 container mx-auto p-6 transition-all duration-500 ${view === 'editor' ? 'max-w-full' : 'max-w-5xl'}`}>
+                        
+                        {/* 1. 首页列表 (游客) */}
+                        {view === 'home' && (
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                <div className="md:col-span-2 space-y-6">
+                                    <h2 className="text-xs font-mono text-cyan-400 mb-8 tracking-[0.3em] uppercase opacity-50">// Directory: {CONFIG.folder}</h2>
+                                    {articles.map(article => (
+                                        <div key={article.sha} onClick={() => readPost(article)} className="glass p-6 rounded-2xl hover:neon-border transition-all cursor-pointer group">
+                                            <div className="flex justify-between items-start">
+                                                <h3 className="text-xl font-bold group-hover:text-cyan-400 transition">{article.name.replace('.md', '')}</h3>
+                                                <i className="fas fa-chevron-right text-[10px] opacity-20 group-hover:opacity-100 group-hover:translate-x-2 transition-all"></i>
+                                            </div>
+                                            <div className="mt-4 flex gap-3 opacity-40 text-[10px]">
+                                                <span><i className="far fa-file-alt mr-1"></i> MARKDOWN</span>
+                                                <span><i className="far fa-clock mr-1"></i> SYNCED</span>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-
-                                {/* 编辑区域 */}
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 editor-height">
-                                    <textarea 
-                                        className="w-full h-full bg-black/40 p-6 rounded-2xl font-mono text-sm outline-none border border-white/5 focus:border-cyan-500/50 resize-none"
-                                        value={postContent}
-                                        onChange={(e) => setPostContent(e.target.value)}
-                                    />
-                                    <div className="w-full h-full bg-white/[0.02] p-6 rounded-2xl overflow-auto border border-white/5">
-                                        <div className="prose prose-invert max-w-none">
-                                            <div className="text-[10px] text-pink-500 mb-4 font-bold tracking-widest">// PREVIEW</div>
-                                            <pre className="whitespace-pre-wrap font-sans opacity-90">{postContent}</pre>
+                                {/* 侧边栏 (仅首页显示) */}
+                                <aside className="space-y-6">
+                                    <div className="glass p-6 rounded-3xl text-center">
+                                        <div className="text-[10px] text-pink-500 font-bold mb-4 tracking-widest uppercase">Broadcast</div>
+                                        <p className="text-sm opacity-60 italic leading-relaxed">“程序是不灭的灵魂，而代码是通往幻想的阶梯。”</p>
+                                    </div>
+                                    <div className="relative rounded-3xl overflow-hidden h-64 glass">
+                                        <img src="https://images.unsplash.com/photo-1614728263952-84ea256f9679?auto=format&fit=crop&q=80&w=500" className="w-full h-full object-cover opacity-50" />
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <span className="text-[10px] font-mono bg-black/50 px-3 py-1">SIGNAL_STRENGTH: 99%</span>
                                         </div>
                                     </div>
+                                </aside>
+                            </div>
+                        )}
+
+                        {/* 2. 阅读页 (游客) */}
+                        {view === 'read' && currentArticle && (
+                            <div className="max-w-3xl mx-auto animate-fadeIn">
+                                <header className="mb-12 text-center">
+                                    <h1 className="text-4xl font-black mb-4">{currentArticle.title.replace('.md', '')}</h1>
+                                    <div className="h-1 w-20 bg-pink-500 mx-auto"></div>
+                                </header>
+                                <div className="glass p-8 md:p-12 rounded-[2rem] markdown-body" 
+                                     dangerouslySetInnerHTML={{ __html: marked.parse(currentArticle.content) }}>
+                                </div>
+                                {/* 评论区占位 */}
+                                <section className="mt-12 glass p-8 rounded-[2rem]">
+                                    <h4 className="text-sm font-bold text-cyan-400 mb-6 uppercase tracking-widest">Incoming Comments // 留言板块</h4>
+                                    <textarea placeholder="输入你的留言..." className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm outline-none mb-4 h-24 focus:border-pink-500 transition"></textarea>
+                                    <button className="bg-white/5 hover:bg-white/10 px-6 py-2 rounded-lg text-xs transition">发送数据</button>
+                                </section>
+                            </div>
+                        )}
+
+                        {/* 3. 编辑模式 (博主) */}
+                        {view === 'editor' && (
+                            <div className="animate-slideUp flex flex-col h-[80vh]">
+                                <div className="glass p-4 rounded-t-3xl border-b-0 flex flex-wrap gap-4 items-end">
+                                    <div className="flex-1">
+                                        <label className="text-[9px] text-pink-500 uppercase block ml-1">Access Token</label>
+                                        <input type="password" value={ghToken} onChange={(e) => { setGhToken(e.target.value); localStorage.setItem('gh_token', e.target.value); }} 
+                                               placeholder="GitHub Personal Token" className="w-full bg-black/40 p-2 rounded-lg text-xs outline-none border border-white/10" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <label className="text-[9px] text-cyan-400 uppercase block ml-1">Post Filename</label>
+                                        <input type="text" value={editPath} onChange={(e) => setEditPath(e.target.value)} 
+                                               placeholder="example.md" className="w-full bg-black/40 p-2 rounded-lg text-xs outline-none border border-white/10 font-mono" />
+                                    </div>
+                                    <button onClick={pushToGithub} className="bg-white text-black px-8 py-2 rounded-lg font-black text-xs hover:bg-pink-500 hover:text-white transition">PUSH_REMOTE</button>
+                                </div>
+                                <div className="flex-1 grid grid-cols-1 lg:grid-cols-2">
+                                    <textarea className="bg-black/60 p-8 text-sm font-mono outline-none border-x border-white/5 resize-none leading-relaxed"
+                                              value={editContent} onChange={(e) => setEditContent(e.target.value)} />
+                                    <div className="bg-white/[0.02] p-8 overflow-auto markdown-body border-r border-white/5" 
+                                         dangerouslySetInnerHTML={{ __html: marked.parse(editContent) }}></div>
                                 </div>
                             </div>
                         )}
@@ -193,13 +216,16 @@
 
                     {/* 登录弹窗 */}
                     {showLogin && (
-                        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[100] backdrop-blur-xl">
-                            <form onSubmit={handleLogin} className="glass-card p-10 rounded-3xl w-full max-w-sm border-t-2 border-cyan-500">
-                                <h2 className="text-xl font-bold mb-6 text-center tracking-widest text-cyan-500">ACCESS SYSTEM</h2>
-                                <input name="username" type="text" placeholder="USER" className="w-full bg-white/5 p-4 rounded-xl mb-4 outline-none border border-white/10" />
-                                <input name="password" type="password" placeholder="PASS" className="w-full bg-white/5 p-4 rounded-xl mb-8 outline-none border border-white/10" />
-                                <button className="w-full bg-white text-black py-4 rounded-xl font-black uppercase tracking-widest hover:bg-cyan-500">Verify</button>
-                                <button type="button" onClick={() => setShowLogin(false)} className="w-full mt-4 text-[10px] opacity-30">CANCEL</button>
+                        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[100] backdrop-blur-md">
+                            <form onSubmit={handleLogin} className="glass p-10 rounded-[2rem] w-80 border-t-2 border-pink-500">
+                                <div className="text-center mb-6">
+                                    <h2 className="font-black tracking-widest text-cyan-400">CORE_LOGIN</h2>
+                                    <p className="text-[9px] opacity-40 mt-1">USER AUTHENTICATION REQUIRED</p>
+                                </div>
+                                <input name="user" type="text" placeholder="ID" className="w-full bg-white/5 p-3 rounded-xl mb-4 text-sm outline-none border border-white/10" />
+                                <input name="pass" type="password" placeholder="PASS" className="w-full bg-white/5 p-3 rounded-xl mb-6 text-sm outline-none border border-white/10" />
+                                <button className="w-full bg-gradient-to-r from-pink-500 to-cyan-500 py-3 rounded-xl text-xs font-bold uppercase">Authorize</button>
+                                <button type="button" onClick={() => setShowLogin(false)} className="w-full mt-4 text-[9px] opacity-20">CANCEL</button>
                             </form>
                         </div>
                     )}
