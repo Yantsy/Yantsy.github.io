@@ -100,4 +100,15 @@ return pcdCtx->pix_fmt;
 
 ### Pointers,Arrays and References
 
+指针本身占据一块内存地址，且它存储的是它所指向的object的内存地址。它的方便之处在于，可以通过指针的拷贝，避免拷贝它所指向内存地址存储的数据。
+
+```cpp
+//demuxer的成员函数
+  auto alcFmtCtx() noexcept {
+    AVFormatContext *pFormatCtx = avformat_alloc_context();//pFormatCtx才是指针，*pFormatCtx为指针所指向内存区域的数据
+    return pFormatCtx;
+  }
+  const AVFormatContext *a =demuxer.alcFmtCtx();
+```
+[avformat_alloc_context()](https://ffmpeg.org/doxygen/5.1/group__lavf__core.html#gac7a91abf2f59648d995894711f070f62)在堆上分配了内存。指针 pFormatCtx 存储了这块内存的地址。通过 return，我将这个地址值拷贝给了外部的指针 a。这个过程只拷贝了 8 字节的地址，而没有拷贝 AVFormatContext 结构体本身的数据，从而实现了所有权的低成本转移。
 
