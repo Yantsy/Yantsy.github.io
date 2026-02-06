@@ -97,3 +97,7 @@ return pcdCtx->pix_fmt;
 还需注意的是const的位置，其在函数名前约束的是输出值在其生命周期内都不能被修改。
 
 在()内则修饰的是函数内local scope内的变量，使传入的值在函数内无法被修改，如在findPxFmt中pcdCtx无法被修改，在（）后修饰的是成员变量,确保findPxFmt所属类的成员变量也无法在函数内被修改，二者共同使得findPxFmt只能读取pcdCtx而无法对其进行修改。
+
+### Pointers,Arrays and References
+
+
