@@ -10,11 +10,11 @@
 
 ### Types,Variables and Arithmetic
 
->A declaration is a statement that introduces an entity into the program and specifies its type。  
+
 > An object is some memory(RAM or CPU Register) that holds a value of some type  
 >A value is a set of bits interpreted according to a type  
 >A variable is a named object  
->An instance is an initialize object
+>An instance is an initialized object
 
 C++并不直接接触内存，而是通过object间接操控内存。
 
@@ -22,6 +22,11 @@ object是一块内存区域（RAM或者CPU寄存器），当object被赋予一�
 
 >Defining a variable:  
 >int x; //类型+变量名（identifier）
+>A declaration is a statement that introduces an entity into the program and specifies its type.  
+>A literal (also known as a literal constant) is a fixed value that has been inserted directly into the source code.  
+>In mathematics, an operation is a process involving zero or more input values (called operands) that produces a new value (called an output value). The specific operation to be performed is denoted by a symbol called an operator.  
+>An expression is a non-empty sequence of literals, variables, operators, and function calls that calculates a value.The process of executing an expression is called evaluation, and the resulting value produced is called the result of the expression (also sometimes called the return value).  
+
 
 >Assignment is the process of defining a variable and assigning a value to it.  
 >int x =10;//copy assignment  
@@ -105,10 +110,29 @@ return pcdCtx->pix_fmt;
 ```cpp
 //demuxer的成员函数
   auto alcFmtCtx() noexcept {
-    AVFormatContext *pFormatCtx = avformat_alloc_context();//pFormatCtx才是指针，*pFormatCtx为指针所指向内存区域的数据
+    AVFormatContext *pFormatCtx = avformat_alloc_context();//pFormatCtx才是指针，*pFormatCtx为指针所指向的object
     return pFormatCtx;
   }
   const AVFormatContext *a =demuxer.alcFmtCtx();
 ```
 [avformat_alloc_context()](https://ffmpeg.org/doxygen/5.1/group__lavf__core.html#gac7a91abf2f59648d995894711f070f62)在堆上分配了内存。指针 pFormatCtx 存储了这块内存的地址。通过 return，我将这个地址值拷贝给了外部的指针 a。这个过程只拷贝了 8 字节的地址，而没有拷贝 AVFormatContext 结构体本身的数据，从而实现了所有权的低成本转移。
 
+引用与指针十分相似，不同之处在于引用不能为空，且引用可以看作别名，对引用的修改就相当于对它映射的变量的修改。
+
+在declaration中，*可以理解为"pointer to"，&可以理解为"reference to“。而在expression中，*可以理解为"contents of"，&可以理解为"address of“。
+```cpp
+int a = 100;//初始化变量a，其存储的值为100  
+  int *c = &a;//指针c存储的值是a的地址，如0x7fff82b280c8  
+  int **d = &c;//指针d存储的值是c的地址，如0x7fff82b28120  
+  int &b = a;//b是a的引用（别名），b是a的别名  
+  std::cout << a << std::endl;//输出a，即100  
+  std::cout << c << std::endl;//输出c的存储值，即a的地址，0x7fff82b280c8  
+  std::cout << *c << std::endl;//输出c存储的地址指向的内容，即100  
+  std::cout << &c << std::endl;//输出c的地址，即0x7fff82b28120  
+  std::cout << d << std::endl;//输出d的存储值，即c的地址，0x7fff82b28120  
+  std::cout << *d << std::endl;//输出d存储的地址所指向的内容，即c的值（c的值就是a的地址），所以输出a的地址0x7fff82b280c8  
+  std::cout << **d << std::endl;//d的值为c的地址，*d再输出a的地址，**d根据a的地址输出a的值100 
+  std::cout << b << std::endl;//b是对a的引用，即a的别名，所以这里输出的就是a,100  
+  std::cout << &b << std::endl;//输出b的地址，即a的地址，0x7fff82b280c8  
+```
+发现没，二级指针和指针的地址其实是一回事。
