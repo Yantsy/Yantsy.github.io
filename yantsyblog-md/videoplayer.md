@@ -1,3 +1,4 @@
+<img src="https://w.wallhaven.cc/full/x1/wallhaven-x166j3.jpg"/>
 ### [项目地址](https://github.com/Yantsy/qtvideoplayer)
 
 ## 如何实现一个基于OpenGL+ffmpeg的本地视频播放器？
@@ -106,7 +107,11 @@
 
 为了看懂该报错，我们需要了解纹理是如何被读取，创建和存储的。
 
-#### 2.未将纹理mapping between the cpu memory and gpu memory导致paintGL崩溃
+### SDL音频处理
+
+#### audioQueue与callback函数
+
+SDL处理音频的机制大概相当于，你给它音频参数，如每次callback的样本数，采样频率，采样格式，callback函数和pcm数据，那么它就会驱动声卡。
 
 
 
