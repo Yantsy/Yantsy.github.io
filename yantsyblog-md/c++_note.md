@@ -1,12 +1,141 @@
 <img src="https://images.wallpaperscraft.com/image/single/girl_bike_silhouette_989860_1280x720.jpg"/>
 
-### From Source File to Executable File:
+### 硬件基础
+
+计算机只认三样东西：
+
+内存地址：0x1000  
+二进制数据：0x10010000  
+CPU指令：MOV,ADD,JMP...  
+
+C/C++最终都要翻译成这三样东西。
+
+### C语言的框架
+
+#### C的内存模型（程序如何使用内存）
+
+栈：局部变量、函数调用  
+堆：malloc/free  
+全局/静态区：全局变量、static  
+常量区：字符串字面量  
+代码区：编译后的机器码  
+
+#### 类型系统（如何解释内存）
+
+基本类型：char, int, float, double  
+复合类型：struct, union, enum  
+指针类型：类型*, void*  
+数组类型：类型\[N]  
+
+核心：类型 = 解释内存的方式
+
+#### 控制流（如何执行代码）
+
+顺序：语句逐行执行  
+分支：if, switch  
+循环：for, while, do-while  
+跳转：goto, return, break, continue  
+
+#### 函数（代码复用）
+
+函数定义  
+函数调用（栈帧的创建与销毁）  
+参数传递（值传递）  
+返回值  
+
+#### 预处理器（编译前的文本处理）
+
+#include（文件包含）  
+#define（宏定义）  
+#ifdef（条件编译） 
+
+#### 标准库（操作系统接口）
+
+stdio.h（输入输出）  
+stdlib.h（内存管理、工具函数）  
+string.h（字符串操作）  
+math.h（数学函数）
+
+### C++的框架
+
+#### C++的内存模型
+
+栈：对象的自动生命周期  
+堆：new/delete，指针  
+静态区：静态成员变量  
+
+#### C++的类型系统
+
+C的类型  
+class/struct(数据+行为)  
+reference(&)  
+template  
+auto  
+
+#### C++的对象模型
+
+对象=数据+行为+生命周期   
+构造->使用->析构->this指针（隐式的对象地址）  
+虚函数表（运行时多态）  
+
+#### 抽象机制
+
+封装：class的private/public  
+继承：代码复用和接口统一  
+多态：编译期：模板、重载，运行期：虚函数  
+泛型：template
+
+#### 内存管理：
+
+C：malloc/free（手动）  
+C++: new/delete（有类型）+智能指针（自动管理内存）
+
+#### 标准库体系：
+
+C标准库  
+STL容器（vector,map,list...）  
+STL算法（sort,find...）  
+智能指针(memory)  
+字符串(string)  
+流(iostream)  
+线程(thread)  
+
+
+#### C语言核心：内存，指针，函数（1972）
+
+#### 面向对象（C++1,1985）
+
+class/struct（数据+行为封装）  
+public/private/protected（访问控制）  
+构造/析构函数（生命周期管理）  
+继承（代码复用）  
+虚函数（多态）  
+运算符重载（语法糖）
+
+#### 泛型编程（C++98）
+
+Template    
+标准模板库（Standard Template Library）:容器（vector,list,map...）,迭代器，算法（sort,find,copy...）  
+异常处理（try/catch）
+
+#### 现代C++（C++11/14/17/20/23...）
+
+智能指针（自动内存管理）  
+移动语义（move semantics）  
+lambda表达式  
+auto/范围for  
+并发支持（thread/mutex）  
+constexpr  
+
+
+
+### 程序的生命周期
 
 <img src="img/image.png" title="程序运行过程"/>
 
-在编译之前，还存在着一个叫做预处理的过程，这也是预处理器发挥作用的地方。
+源代码->预处理->编译（源码->汇编->机器码）->链接（多个.o文件+库->可执行文件）->加载（操作系统将程序载入内存）->运行（内存分配（栈、堆）->对象构造->函数调用->对象析构->内存释放）->退出
 
-常见且常用的预处理器有#include（引入库）,#define（定义宏）,#ifdef（条件编译）,#ifndef,#endif.#ifdef。#include的作用是在预处理时将对应库的文件复制粘贴到它自身所在的位置。宏不检查语法，只负责替换（将代码中使用的宏替换为对应值）。条件编译能决定哪些代码被编译，常常被用于避免重复编译（和#pragma once作用相同），以及处理跨平台开发。
+
 
 ### Functions
 
@@ -121,7 +250,8 @@ return pcdCtx->pix_fmt;
 
 引用与指针十分相似，不同之处在于引用不能为空，且引用可以看作别名，对引用的修改就相当于对它映射的变量的修改。
 
-在declaration中，*可以理解为"pointer to"，&可以理解为"reference to“。而在expression中，*可以理解为"contents of"，&可以理解为"address of“。
+在declaration中，将"*"和“&”分别理解为指针和引用的标识符就好了。而在expression中，*可以理解为"contents of"，作用是解引用，通过指针获取指针所指向内存地址的内容，&可以理解为"address of“，作用在于获取变量存储的地址，此处的变量自然也可以是指针，指针的地址可以看作是一个指向指针的指针，即双指针（**）。对于双指针，第一层解引用获取的是一个内存地址，再对该内存地址解引用获取对应的存储值。
+
 ```cpp
 int a = 100;//初始化变量a，其存储的值为100  
   int *c = &a;//指针c存储的值是a的地址，如0x7fff82b280c8  
@@ -137,4 +267,4 @@ int a = 100;//初始化变量a，其存储的值为100
   std::cout << b << std::endl;//b是对a的引用，即a的别名，所以这里输出的就是a,100  
   std::cout << &b << std::endl;//输出b的地址，即a的地址，0x7fff82b280c8  
 ```
-发现没，二级指针和指针的地址其实是一回事。
+
